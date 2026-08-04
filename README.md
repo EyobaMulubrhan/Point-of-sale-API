@@ -30,8 +30,8 @@ This project is a Point of Sale (POS) System API built using "FastAPI", "SQLAlch
 pip install -r requirements.txt
 
 4. Configure the PostgreSQL database in `database.py`.
-5. Run the application:
-uvicorn main:app --reload
+5. Run the application:fastapi dev
+(uvicorn main:app --reload)
 
 ## API Documentation
 
