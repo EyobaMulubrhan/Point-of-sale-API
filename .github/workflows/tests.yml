@@ -29,6 +29,6 @@ jobs:
 
       - name: Run test suite
         env:
-          DATABASE_URL: "sqlite://"
-          JWT_SECRET: "ci-test-secret"
+          database_url: "sqlite://"
+          jwt_secret: "ci-test-secret"
         run: pytest -v
