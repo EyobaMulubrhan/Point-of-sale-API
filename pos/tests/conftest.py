@@ -1,5 +1,5 @@
 import os
-os.environ["DATABASE_URL"] = "sqlite://"
+os.environ["database_url"] = "sqlite://"
 os.environ["jwt_secret"] = "test-only-secret"
 
 import pytest
