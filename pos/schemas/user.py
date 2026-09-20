@@ -1,20 +1,19 @@
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr
+from core.roles import Role
 
 
 class UserCreate(BaseModel):
-    first_name: str
-    last_name: str
+    full_name: str
     username: str
     password: str
     user_email: EmailStr | None = None
-    role: str
+    role: Role
 
 
 class UserUpdate(BaseModel):
-    first_name: str | None = None
-    last_name: str | None = None
+    full_name: str | None = None
     username: str | None = None
     password: str | None = None
     user_email: EmailStr | None = None
@@ -23,8 +22,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(BaseModel):
     user_id: UUID
-    first_name: str
-    last_name: str
+    full_name: str | None = None
     username: str
     user_email: EmailStr | None
     role: str

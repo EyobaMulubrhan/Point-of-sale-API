@@ -10,11 +10,15 @@ class UserRepository:
     def __init__(self):
         self.model = User
 
-    def get(self, db: Session, id: UUID):
-        return db.get(self.model, id)
+    def get_by_id(self, db: Session, user_id: UUID):
+        return (
+            db.query(self.model)
+            .filter(self.model.user_id == user_id)
+            .first()
+        )
 
     def get_by_username(self, db: Session, username: str):
-        return db.query(self.model).filter(User.username == username).first()
+        return db.query(self.model).filter(User.username == username).first() 
 
     def get_all(self, db: Session):
         return db.query(self.model).all()

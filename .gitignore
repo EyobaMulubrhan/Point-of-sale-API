@@ -1,0 +1,38 @@
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+*.cache
+
+# Dependencies & Packaging
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Python System Files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs & Code Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Operating System Clutter
+.DS_Store
+Thumbs.db

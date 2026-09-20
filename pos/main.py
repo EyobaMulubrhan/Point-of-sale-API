@@ -10,6 +10,7 @@ from routers.sale_router import router as sale_router
 from routers.sale_item_router import router as sale_item_router
 from routers.payment_router import router as payment_router
 from routers.receipt_router import router as receipt_router
+from routers.auth_router import router as auth_router
 
 Base.metadata.create_all(bind=engine)
 app=FastAPI(title="POS API", version="1")
@@ -32,3 +33,10 @@ app.include_router(sale_item_router)
 app.include_router(payment_router)
 
 app.include_router(receipt_router)
+
+app.include_router(auth_router)
+
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to the point of sale system API"}
