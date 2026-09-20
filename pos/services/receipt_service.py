@@ -35,6 +35,8 @@ class ReceiptService:
         if not sale:
             raise HTTPException(status_code=404,detail="Sale not found")
 
+        if receipt_repository.get_by_number(db,data.receipt_number):
+            raise HTTPException(status_code=400,detail="Receipt number already exists")
 
         return receipt_repository.create(db,data.model_dump())
 
@@ -44,7 +46,13 @@ class ReceiptService:
 
         receipt=self.get_receipt(db,receipt_id)
 
-        return receipt_repository.update(db,receipt,data.model_dump(exclude_unset=True))
+        update_data = data.model_dump(exclude_unset=True)
+
+        if "receipt_number" in update_data and update_data["receipt_number"] != receipt.receipt_number:
+            if receipt_repository.get_by_number(db, update_data["receipt_number"]):
+                raise HTTPException(status_code=400,detail="Receipt number already exists")
+
+        return receipt_repository.update(db,receipt,update_data)
 
 
 

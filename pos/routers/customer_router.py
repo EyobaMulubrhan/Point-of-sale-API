@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas.customer import CustomerCreate, CustomerResponse, CustomerUpdate
 from services.customer_service import customer_service
-from dependencies import require_cashier
+from dependencies import require_cashier, require_manager
 
 
 router = APIRouter(prefix="/customers", tags=["Customers"])
@@ -33,6 +33,6 @@ def update_customer(customer_id: UUID, data: CustomerUpdate, db: Session = Depen
 
 
 @router.delete("/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_customer(customer_id: UUID, db: Session = Depends(get_db),current_user=Depends(require_cashier)):
+def delete_customer(customer_id: UUID, db: Session = Depends(get_db),current_user=Depends(require_manager)):
     customer_service.delete_customer(db, customer_id)
     

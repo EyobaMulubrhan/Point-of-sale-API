@@ -4,9 +4,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-
 from schemas.sale import SaleCreate, SaleUpdate, SaleResponse
-
 from services.sale_service import sale_service
 from dependencies import require_cashier, require_manager
 
@@ -36,7 +34,7 @@ def get_sale(sale_id: UUID, db: Session = Depends(get_db),current_user=Depends(r
 @router.post("/", response_model=SaleResponse, status_code=status.HTTP_201_CREATED)
 def create_sale(data: SaleCreate, db: Session = Depends(get_db),current_user=Depends(require_cashier)):
 
-    return sale_service.create_sale(db,data)
+    return sale_service.create_sale(db,data,current_user)
 
 
 
@@ -47,7 +45,7 @@ def update_sale(sale_id: UUID,data: SaleUpdate,db: Session = Depends(get_db),cur
 
 
 
-@router.delete("/{sale_id}")
+@router.delete("/{sale_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_sale(sale_id: UUID,db: Session = Depends(get_db),current_user=Depends(require_manager)):
 
-    return sale_service.delete_sale(db,sale_id)
+    sale_service.delete_sale(db,sale_id)

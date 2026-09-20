@@ -14,6 +14,10 @@ class ReceiptRepository:
     def get(self,db:Session,id:UUID):
         return db.get(self.model,id)
 
+    
+    def get_by_number(self,db:Session,receipt_number:str):
+        return db.query(self.model).filter(self.model.receipt_number == receipt_number).first()
+
 
     def get_all(self,db:Session):
         return db.query(self.model).all()

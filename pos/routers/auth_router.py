@@ -5,7 +5,7 @@ from fastapi import status
 
 from database import get_db
 from services.auth_service import authenticate, register
-from schemas.user import UserCreate,UserResponse
+from schemas.user import UserRegister,UserResponse
 
 
 router = APIRouter(
@@ -15,7 +15,7 @@ router = APIRouter(
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(
-    data: UserCreate,
+    data: UserRegister,
     db: Session = Depends(get_db),
 ):
     return register(db, data)

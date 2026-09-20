@@ -9,13 +9,11 @@ class SaleItemCreate(BaseModel):
     sale_id: UUID
     product_id: UUID
     quantity: int
-    product_price: Decimal
 
 
 class SaleItemUpdate(BaseModel):
 
     quantity: int | None = None
-    product_price: Decimal | None = None
 
 
 class SaleItemResponse(BaseModel):

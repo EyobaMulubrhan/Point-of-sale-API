@@ -11,6 +11,12 @@ class UserCreate(BaseModel):
     user_email: EmailStr | None = None
     role: Role
 
+class UserRegister(BaseModel):
+    full_name: str
+    username: str
+    password: str
+    user_email: EmailStr | None = None
+
 
 class UserUpdate(BaseModel):
     full_name: str | None = None

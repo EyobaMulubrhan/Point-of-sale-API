@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from repositories.sale_repository import sale_repository
+from repositories.customer_repository import customer_repository
 from schemas.sale import SaleCreate, SaleUpdate
 
 
@@ -30,11 +31,18 @@ class SaleService:
 
 
 
-    def create_sale(self, db: Session, data: SaleCreate):
+    def create_sale(self, db: Session, data: SaleCreate, current_user):
+
+        if data.customer_id and not customer_repository.get(db, data.customer_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Customer not found"
+            )
 
         sale_data = data.model_dump()
 
         sale_data["sale_amount"] = 0
+        sale_data["user_id"] = current_user.user_id
 
         return sale_repository.create(db,sale_data)
 
@@ -67,7 +75,6 @@ class SaleService:
         return {
             "message":"Sale deleted successfully"
         }
-
 
 
 sale_service = SaleService()

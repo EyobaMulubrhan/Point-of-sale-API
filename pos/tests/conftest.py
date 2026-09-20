@@ -1,14 +1,18 @@
 import os
+os.environ["DATABASE_URL"] = "sqlite://"
+os.environ["jwt_secret"] = "test-only-secret"
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-os.environ["DATABASE_URL"] = "sqlite://"
-
 from database import Base, get_db
 from main import app
+from core.security import hash_password
+from core.roles import Role
+from models.user import User
 
 engine = create_engine(
     "sqlite://",
@@ -44,31 +48,146 @@ def client(db_session):
         yield c
     app.dependency_overrides.clear()
 
-
-@pytest.fixture
-def test_user(client):
-    user_data = {
-        "username": "testuser",
-        "email": "testuser@example.com",
-        "password": "testpass123",
-        "full_name": "Test User",
+def _register_and_login(client, username, password="testpass123", **extra):
+    payload = {
+        "full_name": extra.pop("full_name", "Test User"),
+        "username": username,
+        "password": password,
+        **extra,
     }
-    response = client.post("/auth/register", json=user_data)
-    assert response.status_code == 201, f"Registration failed: {response.text}"
-    return user_data
+    r = client.post("/auth/register", json=payload)
+    assert r.status_code == 201, f"Registration failed: {r.text}"
 
-
-@pytest.fixture
-def auth_header(client, test_user):
-    response = client.post(
-        "/auth/login",
-        data={"username": test_user["username"], "password": test_user["password"]},
-    )
-    assert response.status_code == 200, f"Login failed: {response.text}"
-    token = response.json()["access_token"]
+    r = client.post("/auth/login", data={"username": username, "password": password})
+    assert r.status_code == 200, f"Login failed: {r.text}"
+    token = r.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
-def auth_headers(auth_header):
-    return auth_header
+def test_user(client):
+    username = "cashier_user"
+    password = "testpass123"
+    r = client.post(
+        "/auth/register",
+        json={
+            "full_name": "Cashier User",
+            "username": username,
+            "password": password,
+            "user_email": "cashier@gmail.com",
+        },
+    )
+    assert r.status_code == 201, f"Registration failed: {r.text}"
+    return {"username": username, "password": password, **r.json()}
+
+
+@pytest.fixture
+def auth_headers(client, test_user):
+    r = client.post(
+        "/auth/login",
+        data={"username": test_user["username"], "password": test_user["password"]},
+    )
+    assert r.status_code == 200, f"Login failed: {r.text}"
+    token = r.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def auth_header(auth_headers):
+    return auth_headers
+
+
+@pytest.fixture
+def cashier_headers(client):
+    return _register_and_login(client, username="cashier2", full_name="Second Cashier")
+
+
+@pytest.fixture
+def manager_user(db_session):
+    manager = User(
+        full_name="Store Manager",
+        username="manager_user",
+        password_hash=hash_password("managerpass123"),
+        user_email="manager@gmail.com",
+        role=Role.MANAGER.value,
+    )
+    db_session.add(manager)
+    db_session.commit()
+    db_session.refresh(manager)
+    return manager
+
+
+@pytest.fixture
+def manager_headers(client, manager_user):
+    r = client.post(
+        "/auth/login",
+        data={"username": "manager_user", "password": "managerpass123"},
+    )
+    assert r.status_code == 200, f"Manager login failed: {r.text}"
+    token = r.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def category(client, manager_headers):
+    r = client.post(
+        "/categories",
+        json={"category_name": "Beverages", "description": "Drinks"},
+        headers=manager_headers,
+    )
+    assert r.status_code == 201, r.text
+    return r.json()
+
+
+@pytest.fixture
+def supplier(client, manager_headers):
+    r = client.post(
+        "/suppliers",
+        json={"supplier_name": "Beverage Supplies", "supplier_email": "supplier@gmail.com"},
+        headers=manager_headers,
+    )
+    assert r.status_code == 201, r.text
+    return r.json()
+
+
+@pytest.fixture
+def product(client, manager_headers, category):
+    r = client.post(
+        "/products",
+        json={
+            "category_id": category["category_id"],
+            "product_name": "Coca Cola",
+            "cost_price": 80.00,
+            "selling_price": 100.00,
+            "quantity": 50,
+        },
+        headers=manager_headers,
+    )
+    assert r.status_code == 201, r.text
+    return r.json()
+
+
+@pytest.fixture
+def customer(client, cashier_headers):
+    r = client.post(
+        "/customers",
+        json={"first_name": "Eyoba", "last_name": "Mulubrhan", "email": "eyoba@gmail.com"},
+        headers=cashier_headers,
+    )
+    assert r.status_code == 201, r.text
+    return r.json()
+
+
+@pytest.fixture
+def sale(client, cashier_headers):
+    r = client.post(
+        "/sales",
+        json={"tax": 0, "discount": 0},
+        headers=cashier_headers,
+    )
+    assert r.status_code == 201, r.text
+    return r.json()
+
+
+
+

@@ -28,7 +28,7 @@ class SaleItemService:
 
         if not sale:
             raise HTTPException(status_code=404,detail="Sale not found")
-        
+
         product=product_repository.get(db,data.product_id)
 
         if not product:
@@ -37,8 +37,11 @@ class SaleItemService:
         if product.quantity < data.quantity:
             raise HTTPException(status_code=400,detail="Not enough product stock")
 
+        price = product.selling_price
+
         item_data=data.model_dump()
-        subtotal=data.quantity * data.product_price
+        item_data["product_price"]=price
+        subtotal=data.quantity * price
         item_data["subtotal"]=subtotal
         product.quantity-=data.quantity
         sale.sale_amount+=subtotal
@@ -53,7 +56,9 @@ class SaleItemService:
         item=self.get_sale_item(db,sale_item_id)
         update_data=data.model_dump(exclude_unset=True)
         new_quantity=update_data.get("quantity",item.quantity)
-        new_price=update_data.get("product_price",item.product_price)
+        # Price is never client-editable - it stays locked at whatever was
+        # recorded when the item was created.
+        price=item.product_price
 
         if "quantity" in update_data:
             product=product_repository.get(db,item.product_id)
@@ -65,7 +70,7 @@ class SaleItemService:
             product.quantity-=quantity_delta
 
         old_subtotal=item.subtotal
-        new_subtotal=new_quantity*new_price
+        new_subtotal=new_quantity*price
         update_data["subtotal"]=new_subtotal
         sale=sale_repository.get(db,item.sale_id)
         sale.sale_amount+=(new_subtotal-old_subtotal)

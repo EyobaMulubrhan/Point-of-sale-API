@@ -19,7 +19,7 @@ def get_categories(db: Session = Depends(get_db),current_user=Depends(require_ca
 
 
 @router.get("/{category_id}", response_model=CategoryResponse, status_code=status.HTTP_200_OK)
-def get_category(category_id: UUID, db: Session = Depends(get_db),current_user=Depends(require_manager)):
+def get_category(category_id: UUID, db: Session = Depends(get_db),current_user=Depends(require_cashier)):
     return category_service.get_category(db, category_id)
 
 

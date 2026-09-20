@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 class SaleCreate(BaseModel):
 
-    user_id: UUID
     customer_id: UUID | None = None
     tax: Decimal
     discount: Decimal

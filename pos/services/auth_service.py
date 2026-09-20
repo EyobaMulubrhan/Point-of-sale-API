@@ -1,3 +1,5 @@
+import jwt
+
 from typing import Any
 from uuid import UUID
 
@@ -10,14 +12,12 @@ from core.security import (
     hash_password,
     verify_password,
 )
-
 from schemas.user import UserCreate
-from repositories import user_repository
+from repositories.user_repository import user_repository
 from core.roles import Role
 
 
 def register(db: Session, data: UserCreate):
-
     if user_repository.get_by_username(db, data.username):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -25,7 +25,6 @@ def register(db: Session, data: UserCreate):
         )
 
     values = data.model_dump(exclude={"password"})
-
     values["password_hash"] = hash_password(data.password)
     values["role"] = Role.CASHIER.value
 
@@ -35,14 +34,13 @@ def register(db: Session, data: UserCreate):
 def authenticate(
     db: Session,
     username: str,
-    password: str
+    password: str,
 ):
-
     user = user_repository.get_by_username(db, username)
 
     if not user or not verify_password(
         password,
-        user.password_hash
+        user.password_hash,
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -63,7 +61,6 @@ def authenticate(
 
 
 def get_user_from_token(db: Session, token: str):
-
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired token",
@@ -80,7 +77,7 @@ def get_user_from_token(db: Session, token: str):
 
         user_id = UUID(subject)
 
-    except (ValueError, TypeError):
+    except (jwt.InvalidTokenError, ValueError, TypeError):
         raise credentials_error
 
     user = user_repository.get_by_id(db, user_id)

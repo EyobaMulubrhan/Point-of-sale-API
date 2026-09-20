@@ -1,10 +1,5 @@
-from fastapi.testclient import TestClient
-from pos.main import app
 
-client =TestClient(app)
-
-
-def test_home():
+def test_home(client):
     response = client.get("/")
-    print(response.json())
     assert response.status_code == 200
+    assert response.json() == {"message": "Welcome to the point of sale system API"}
